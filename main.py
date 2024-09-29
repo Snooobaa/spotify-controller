@@ -26,6 +26,7 @@ current_frame = 0
 frames = []
 
 # Tkinter setup
+
 def play_music():
     global playing
     sp.start_playback()
@@ -113,7 +114,11 @@ def initialize_playing_state():
 
 # Main window setup
 root = tk.Tk()
-root.title("Spotify Controller")
+root.title("Weebify")
+
+icon = tk.PhotoImage(file="icon.png")
+root.iconphoto(False, icon)
+
 
 # Play button
 play_button = tk.Button(root, text="Play", command=play_music)
