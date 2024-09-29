@@ -56,14 +56,33 @@ def animate_gif():
         gif_label.config(image=frames[current_frame])
         root.after(gif_speed.get() * 10, animate_gif)  # Adjust GIF speed based on slider
 
+# Function to get BPM (tempo) from Spotify API
+def get_bpm(track_id):
+    try:
+        # Retrieve audio analysis for the current track
+        analysis = sp.audio_analysis(track_id)
+        bpm = analysis['track']['tempo']  # BPM (tempo) data is in the 'tempo' field
+        return bpm
+    except Exception as e:
+        print(f"Error retrieving BPM: {e}")
+        return None
+
+# Function to update the current song and BPM
 def update_current_song():
     try:
         current_playback = sp.current_playback()
         if current_playback and current_playback['is_playing']:
             track = current_playback['item']
+            track_id = track['id']  # Get track ID
             song_name = track['name']
             artist_name = track['artists'][0]['name']
-            current_song_label.config(text=f"Now playing: {song_name} by {artist_name}")
+            
+            # Get BPM for the current track
+            bpm = get_bpm(track_id)
+            bpm_text = f" (BPM: {bpm:.1f})" if bpm else ""
+            
+            # Update song label with song name, artist, and BPM
+            current_song_label.config(text=f"Now playing: {song_name} by {artist_name}{bpm_text}")
         else:
             current_song_label.config(text="No song is currently playing")
     except Exception as e:
