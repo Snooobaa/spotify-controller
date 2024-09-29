@@ -1,6 +1,7 @@
 import tkinter as tk
 import spotipy
 import os
+import threading
 from dotenv import load_dotenv
 from spotipy.oauth2 import SpotifyOAuth
 
@@ -53,7 +54,7 @@ def animate_gif():
     if playing and frames:  # Ensure that the GIF frames are loaded and music is playing
         current_frame = (current_frame + 1) % len(frames)
         gif_label.config(image=frames[current_frame])
-        root.after(100, animate_gif)  # Loop GIF frames with a 100ms delay
+        root.after(gif_speed.get() * 10, animate_gif)  # Adjust GIF speed based on slider
 
 def update_current_song():
     try:
@@ -68,7 +69,12 @@ def update_current_song():
     except Exception as e:
         current_song_label.config(text="Error fetching song data")
         print(f"Error in update_current_song: {e}")
-    root.after(1000, update_current_song)
+
+def update_song_in_thread():
+    while True:
+        update_current_song()
+        # Sleep for a bit before the next update to avoid overwhelming the API
+        threading.Event().wait(5)  # Update every 5 seconds
 
 # Function to initialize playing state based on Spotify playback
 def initialize_playing_state():
@@ -102,6 +108,14 @@ pause_button.pack(pady=10)
 gif_label = tk.Label(root)
 gif_label.pack(pady=10)
 
+# Gif speed frame
+speed_frame = tk.LabelFrame(root, text="Dance Speed")
+speed_frame.pack(pady=10)
+# Gif dance speed
+gif_speed = tk.Scale(speed_frame, from_=10, to=1, orient=tk.HORIZONTAL)
+gif_speed.pack(pady=10)
+gif_speed.config(showvalue=0)
+
 # Load the GIF when the app starts
 load_gif()
 
@@ -112,8 +126,8 @@ current_song_label.pack(pady=10)
 # Initialize playing state based on Spotify playback
 initialize_playing_state()
 
-# Start updating the current song
-update_current_song()
+# Start updating the current song in a separate thread
+threading.Thread(target=update_song_in_thread, daemon=True).start()
 
 # Run the Tkinter event loop
 root.mainloop()
